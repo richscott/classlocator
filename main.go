@@ -2,47 +2,69 @@ package main
 
 import (
 	"archive/zip"
+	"database/sql"
 	"fmt"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
+	// "regexp"
 	"strings"
+
+	_ "modernc.org/sqlite"
 )
 
-var classRe = regexp.MustCompile(`\.class$`)
+const jarroot = "/Users/richscott/.m2/repository"
+const dbFile = "jars.db"
 
-var extractClasses = func(path string, d fs.DirEntry, err error) error {
-	if d.IsDir() || !strings.HasSuffix(path, ".jar") {
-		return nil
-	}
-
-	r, openErr := zip.OpenReader(path)
-	if openErr != nil {
-		log.Fatal(openErr)
-	}
-	defer func() {
-		closeErr := r.Close()
-		if closeErr != nil {
-			fmt.Fprintf(os.Stderr, "error closing jar file reader: %v\n", closeErr)
-		}
-	}()
-
-	fmt.Printf("%s\n", path)
-	for _, f := range r.File {
-		if classRe.MatchString(f.Name) {
-			fmt.Printf("%s\n", f.Name)
-		}
-	}
-	fmt.Printf("\n")
-	return nil
-}
+// var classRe = regexp.MustCompile(`\.class$`)
 
 func main() {
-	jarroot := "/Users/richscott/.m2/repository/org/apache/spark/spark-core_2.13/3.5.5"
+	db, err := sql.Open("sqlite", dbFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error opening %s: %v\n", dbFile, err)
+		os.Exit(1)
+	}
 
-	err := filepath.WalkDir(jarroot, extractClasses)
+	if _, err = db.Exec(`
+		drop table if exists jarclasses;
+		create table jarclasses(classname text, jarfile text);
+		`); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating database table: %v\n", err)
+		os.Exit(1)
+	}
+
+	err = filepath.WalkDir(jarroot, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() || !strings.HasSuffix(path, ".jar") {
+			return nil
+		}
+
+		fmt.Printf("%s\n", path)
+
+		r, openErr := zip.OpenReader(path)
+		if openErr != nil {
+			log.Fatal(openErr)
+		}
+		defer func() {
+			closeErr := r.Close()
+			if closeErr != nil {
+				fmt.Fprintf(os.Stderr, "error closing jar file reader: %v\n", closeErr)
+			}
+		}()
+
+		for _, f := range r.File {
+			// if classRe.MatchString(f.Name) {
+			if strings.HasSuffix(f.Name, ".class") {
+				// fmt.Printf("%s\n", f.Name)
+				_, err := db.Exec(`INSERT INTO jarclasses(classname, jarfile) VALUES(?, ?)`, f.Name, path)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
+		return nil
+	})
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error searching path: %v\n", err)
 	}
