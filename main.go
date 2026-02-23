@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	// "regexp"
 	"strings"
 
 	_ "modernc.org/sqlite"
@@ -16,8 +15,6 @@ import (
 
 const jarroot = "/Users/richscott/.m2/repository"
 const dbFile = "jars.db"
-
-// var classRe = regexp.MustCompile(`\.class$`)
 
 func main() {
 	db, err := sql.Open("sqlite", dbFile)
@@ -52,15 +49,24 @@ func main() {
 			}
 		}()
 
+		txn, txErr := db.Begin()
+		if txErr != nil {
+			fmt.Fprintf(os.Stderr, "Error starting db transaction: %v\n", txErr)
+			os.Exit(1)
+		}
+
 		for _, f := range r.File {
-			// if classRe.MatchString(f.Name) {
 			if strings.HasSuffix(f.Name, ".class") {
-				// fmt.Printf("%s\n", f.Name)
-				_, err := db.Exec(`INSERT INTO jarclasses(classname, jarfile) VALUES(?, ?)`, f.Name, path)
+				_, err := txn.Exec(`INSERT INTO jarclasses(classname, jarfile) VALUES(?, ?)`, f.Name, path)
 				if err != nil {
 					log.Fatal(err)
 				}
 			}
+		}
+		txErr = txn.Commit()
+		if txErr != nil {
+			fmt.Fprintf(os.Stderr, "Error committing db transaction: %v\n", txErr)
+			os.Exit(1)
 		}
 		return nil
 	})
