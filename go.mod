@@ -1,4 +1,4 @@
-module github.com/richscott/classfinder
+module github.com/richscott/classlocator
 
 go 1.25.0
 
