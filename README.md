@@ -11,8 +11,9 @@ $ go build
 
 ## Running
 It will print a line for each jarfile it processes. The SQLite database is
-written to `jars.db`. On a Macbook Pro M1, this has been observed to process
-4672 jarfiles of various sizes in ~8 seconds.
+written to `jars.db`, with a single table of schema `jarclasses(classname text, jarfile text)`.
+On a Macbook Pro M1, this has been observed to process 4672 jarfiles of various sizes
+in ~8 seconds, producing a result database of 2262225 rows.
 
 ```
 $ ./classlocator
