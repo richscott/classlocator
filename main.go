@@ -13,10 +13,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const jarroot = "/Users/richscott/.m2/repository"
 const dbFile = "jars.db"
 
 func main() {
+	homedir, _ := os.LookupEnv("HOME")
+	jarroot := fmt.Sprintf("%s/.m2/repository", homedir)
+
 	db, err := sql.Open("sqlite", dbFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening %s: %v\n", dbFile, err)
