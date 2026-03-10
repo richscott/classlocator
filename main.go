@@ -19,18 +19,24 @@ func main() {
 	homedir, _ := os.LookupEnv("HOME")
 	jarroot := fmt.Sprintf("%s/.m2/repository", homedir)
 
+	err := buildDb(jarroot)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func buildDb(jarroot string) error {
 	db, err := sql.Open("sqlite", dbFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening %s: %v\n", dbFile, err)
-		os.Exit(1)
+		return fmt.Errorf("error opening %s: %v", dbFile, err)
 	}
 
 	if _, err = db.Exec(`
 		drop table if exists jarclasses;
 		create table jarclasses(classname text, jarfile text);
 		`); err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating database table: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error creating database table: %v", err)
 	}
 
 	err = filepath.WalkDir(jarroot, func(path string, d fs.DirEntry, err error) error {
@@ -53,8 +59,7 @@ func main() {
 
 		txn, txErr := db.Begin()
 		if txErr != nil {
-			fmt.Fprintf(os.Stderr, "Error starting db transaction: %v\n", txErr)
-			os.Exit(1)
+			log.Fatalf("Error starting db transaction: %v\n", txErr)
 		}
 
 		for _, f := range r.File {
@@ -67,13 +72,14 @@ func main() {
 		}
 		txErr = txn.Commit()
 		if txErr != nil {
-			fmt.Fprintf(os.Stderr, "Error committing db transaction: %v\n", txErr)
-			os.Exit(1)
+			log.Fatalf("Error committing db transaction: %v\n", txErr)
 		}
 		return nil
 	})
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error searching path: %v\n", err)
+		return fmt.Errorf("error searching path: %v", err)
 	}
+
+	return nil
 }
