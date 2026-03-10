@@ -16,7 +16,7 @@ On a Macbook Pro M1, this has been observed to process 4672 jarfiles of various 
 in ~8 seconds, producing a result database of 2262225 rows.
 
 ```
-$ ./classlocator
+$ ./classlocator build
 [....]
 $ sqlite3 jars.db
 SQLite version 3.43.2 2023-10-10 13:08:14
@@ -29,6 +29,11 @@ org/apache/spark/deploy/SparkSubmit.class  /Users/richscott/.m2/repository/org/a
 org/apache/spark/deploy/SparkSubmit.class  /Users/richscott/.m2/repository/org/apache/spark/spark-core_2.13/3.3.4/spark-core_2.13-3.3.4.jar
 org/apache/spark/deploy/SparkSubmit.class  /Users/richscott/.m2/repository/org/apache/spark/spark-core_2.13/3.5.5/spark-core_2.13-3.5.5.jar
 sqlite> .quit
-$
+$ ./classlocator search org/apache/commons/collections/map/UnmodifiableMap
+searching for org/apache/commons/collections/map/UnmodifiableMap
+org/apache/commons/collections/map/UnmodifiableMap.class        /Users/richscott/.m2/repository/commons-collections/commons-collections/3.1/commons-collections-3.1.jar
+org/apache/commons/collections/map/UnmodifiableMap.class        /Users/richscott/.m2/repository/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar
+org/apache/commons/collections/map/UnmodifiableMap.class        /Users/richscott/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar
+org/apache/commons/collections/map/UnmodifiableMap.class        /Users/richscott/.m2/repository/commons-collections/commons-collections/3.2/commons-collections-3.2.jar
 ```
 
