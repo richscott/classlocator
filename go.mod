@@ -2,7 +2,10 @@ module github.com/richscott/classlocator
 
 go 1.25.0
 
-require modernc.org/sqlite v1.46.1
+require (
+	github.com/urfave/cli/v3 v3.7.0
+	modernc.org/sqlite v1.46.1
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
