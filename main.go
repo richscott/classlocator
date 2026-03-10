@@ -106,7 +106,10 @@ func buildDb(jarroot string) error {
 	return nil
 }
 
-func searchDb(className string) error {
+func searchDb(findClass string) error {
+	// users may search for either "foo.bar.baz" or "foo/bar/baz"; the
+	// database stores in latter format
+	className := strings.ReplaceAll(findClass, ".", "/")
 	fmt.Printf("searching for %s\n", className)
 
 	db, err := sql.Open("sqlite", dbFile)
