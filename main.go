@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -36,6 +37,9 @@ func main() {
 				Name:  "search",
 				Usage: "search",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
+					if cmd.Args().Len() == 0 {
+						return errors.New("search: missing required classname argument")
+					}
 					searchClass := cmd.Args().Get(0)
 					return searchDb(searchClass)
 				},
